@@ -44,3 +44,10 @@ async def create_table():
         await db.execute('''CREATE TABLE IF NOT EXISTS users (user_id INTEGER PRIMARY KEY, score INTEGER)''')
         # Сохраняем изменения
         await db.commit()
+
+async def get_all_users_scores():
+    #Получить статистику всех пользователей
+    async with aiosqlite.connect(DB_NAME) as db:
+        async with db.execute('''SELECT user_id, score FROM users WHERE score > 0 ORDER BY score DESC''') as cursor:
+            results = await cursor.fetchall()
+            return results

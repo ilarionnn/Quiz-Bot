@@ -5,7 +5,7 @@ from aiogram.filters.command import Command
 
 from question import quiz_data
 from config import API_TOKEN, DB_NAME
-from database import get_quiz_index, get_user_score, update_quiz_index, update_user_score, create_table
+from database import get_quiz_index, get_user_score, update_quiz_index, update_user_score, create_table, get_all_users_scores
 
 # Объект бота
 bot = Bot(token=API_TOKEN)
@@ -70,13 +70,51 @@ async def handle_answer(callback: types.CallbackQuery):
         await callback.message.answer(f"Это был последний вопрос. Квиз завершен! \nВаш результат: {current_score} правильных ответов.")
 
 
+
+async def cmd_stats(message: types.Message):
+    """Показать статистику всех пользователей"""
+    all_stats = await get_all_users_scores()
+    
+    if not all_stats:
+        await message.answer("📊 Пока никто не играл в квиз!")
+        return
+    
+    stats_text = "📊 Статистика игроков:\n\n"
+    
+    for i, (user_id, score) in enumerate(all_stats, 1):
+        stats_text += f"{i}. ID {user_id} - {score} правильных ответов\n"
+        
+        # Ограничиваем вывод чтобы не превысить лимит сообщения
+        if i >= 10:
+            stats_text += "\n... и другие"
+            break
+    
+    await message.answer(stats_text)
+
 # Хэндлер на команду /start
+
+'''async def cmd_start(message: types.Message):
+    builder = ReplyKeyboardBuilder()
+    builder.add(types.KeyboardButton(text="Начать игру"))
+    await message.answer("Добро пожаловать в квиз!", reply_markup=builder.as_markup(resize_keyboard=True))'''
 @dp.message(Command("start"))
 async def cmd_start(message: types.Message):
     builder = ReplyKeyboardBuilder()
     builder.add(types.KeyboardButton(text="Начать игру"))
-    await message.answer("Добро пожаловать в квиз!", reply_markup=builder.as_markup(resize_keyboard=True))
+    builder.add(types.KeyboardButton(text="Статистика"))
+    builder.adjust(2)
+    
+    await message.answer(
+        "Добро пожаловать в квиз!\n\n"
+        "Доступные команды:\n"
+        "/quiz - Начать квиз\n"
+        "/stats - Статистика игроков\n"
+        "/help - Помощь",
+        reply_markup=builder.as_markup(resize_keyboard=True)
+    )
 
+dp.message.register(cmd_stats, Command("stats"))
+dp.message.register(cmd_stats, F.text == "Статистика")
 
 async def get_question(message, user_id):
 
