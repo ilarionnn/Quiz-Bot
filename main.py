@@ -72,19 +72,19 @@ async def handle_answer(callback: types.CallbackQuery):
 
 
 async def cmd_stats(message: types.Message):
-    """Показать статистику всех пользователей"""
+    #Показать статистику всех пользователей
     all_stats = await get_all_users_scores()
     
     if not all_stats:
         await message.answer("📊 Пока никто не играл в квиз!")
         return
     
-    stats_text = "📊 Статистика игроков:\n\n"
+    stats_text = "Статистика игроков:\n\n"
     
     for i, (user_id, score) in enumerate(all_stats, 1):
         stats_text += f"{i}. ID {user_id} - {score} правильных ответов\n"
         
-        # Ограничиваем вывод чтобы не превысить лимит сообщения
+        # Ограничиваем вывод чтобы не получить огромный список
         if i >= 10:
             stats_text += "\n... и другие"
             break
@@ -92,11 +92,6 @@ async def cmd_stats(message: types.Message):
     await message.answer(stats_text)
 
 # Хэндлер на команду /start
-
-'''async def cmd_start(message: types.Message):
-    builder = ReplyKeyboardBuilder()
-    builder.add(types.KeyboardButton(text="Начать игру"))
-    await message.answer("Добро пожаловать в квиз!", reply_markup=builder.as_markup(resize_keyboard=True))'''
 @dp.message(Command("start"))
 async def cmd_start(message: types.Message):
     builder = ReplyKeyboardBuilder()
@@ -117,7 +112,6 @@ dp.message.register(cmd_stats, Command("stats"))
 dp.message.register(cmd_stats, F.text == "Статистика")
 
 async def get_question(message, user_id):
-
     # Получение текущего вопроса из словаря состояний пользователя
     current_question_index = await get_quiz_index(user_id)
     correct_index = quiz_data[current_question_index]['correct_option']
@@ -134,10 +128,6 @@ async def new_quiz(message):
     await update_user_score(user_id, new_score)
     await get_question(message, user_id)
 
-
-
-
-
 # Хэндлер на команду /quiz
 @dp.message(F.text=="Начать игру")
 @dp.message(Command("quiz"))
@@ -146,17 +136,13 @@ async def cmd_quiz(message: types.Message):
     await message.answer(f"Давайте начнем квиз!")
     await new_quiz(message)
 
-
-
-
-
 # Хэндлер на команду /help
 @dp.message(Command("help"))
 async def cmd_start(message: types.Message):
     await message.answer("Команды бота:\n/start - начать взаимодействие с ботом\n/help - открыть помощь\n/quiz - начать игру")
 
 async def delete_webhook():
-    """Удаляет активный вебхук"""
+    ###!!!Удаляет активный вебхук
     bot = Bot(token=API_TOKEN)
     await bot.delete_webhook()
     await bot.session.close()
@@ -166,7 +152,6 @@ async def main():
     await delete_webhook()
     # Запускаем создание таблицы базы данных
     await create_table()
-
     await dp.start_polling(bot)
 
 if __name__ == "__main__":
